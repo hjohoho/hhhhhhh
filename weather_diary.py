@@ -249,7 +249,7 @@ class WeatherDiary:
             messagebox.showerror("Ошибка", f"Не удалось сохранить: {e}")
             
     def load_from_file(self):
-        """Загрузка из JSON файла"""
+        """Загрузка из JSON файла с обработкой ошибок"""
         filename = "weather_data.json"
         if not os.path.exists(filename):
             messagebox.showwarning("Предупреждение", f"Файл {filename} не найден")
@@ -257,10 +257,18 @@ class WeatherDiary:
             
         try:
             with open(filename, 'r', encoding='utf-8') as f:
-                self.entries = json.load(f)
+                content = f.read().strip()
+                if not content:
+                    messagebox.showwarning("Предупреждение", "Файл пуст, создана новая запись")
+                    self.entries = []
+                else:
+                    self.entries = json.loads(content)
             self.reset_filter()
             self.status_label.config(text=f"Загружено из {filename}")
             messagebox.showinfo("Успех", f"Загружено {len(self.entries)} записей")
+        except json.JSONDecodeError:
+            messagebox.showerror("Ошибка", "Файл JSON повреждён! Создана новая запись.")
+            self.entries = []
         except Exception as e:
             messagebox.showerror("Ошибка", f"Не удалось загрузить: {e}")
             
